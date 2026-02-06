@@ -1,0 +1,17 @@
+import Foundation
+
+struct ClipboardItem: Identifiable, Codable, Equatable {
+    let id: UUID
+    let content: String
+    let timestamp: Date
+    
+    init(id: UUID = UUID(), content: String, timestamp: Date = Date()) {
+        self.id = id
+        self.content = content
+        self.timestamp = timestamp
+    }
+    
+    static func == (lhs: ClipboardItem, rhs: ClipboardItem) -> Bool {
+        lhs.id == rhs.id
+    }
+}
