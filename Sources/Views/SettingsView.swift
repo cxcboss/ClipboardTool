@@ -8,6 +8,7 @@ struct SettingsView: View {
     @State private var isRecording = false
     @State private var recordedKeys: [String] = []
     @State private var recordedFlags: Int = 0
+    @State private var isAccessibilityEnabled = false
     
     var body: some View {
         VStack(spacing: 0) {
@@ -64,7 +65,7 @@ struct SettingsView: View {
                     Text("💡 使用提示")
                         .font(.headline)
                     
-                    Text("• 点击菜单栏图标或快捷键打开剪贴板窗口")
+                    Text("• 点击菜单栏图标打开剪贴板窗口")
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
@@ -95,34 +96,48 @@ struct SettingsView: View {
             .padding(.bottom, 20)
             .padding(.horizontal, 30)
         }
-        .frame(width: 450, height: 440)
+        .frame(width: 450, height: 460)
         .onAppear {
             setupKeyEvents()
+            checkAccessibilityPermission()
         }
         .onDisappear {
             cancelRecording()
         }
     }
     
+    private func checkAccessibilityPermission() {
+        let trusted = AXIsProcessTrusted()
+        isAccessibilityEnabled = trusted
+        fputs("[SettingsView] Accessibility permission: \(trusted ? "enabled" : "disabled")\n", stderr)
+        fflush(stderr)
+    }
+    
+    private func openAccessibilitySettings() {
+        if let url = URL(string: "x-apple.systempreferences:com.apple.Security_Privacy_Accessibility") {
+            NSWorkspace.shared.open(url)
+        }
+    }
+    
     private var permissionSection: some View {
         VStack(spacing: 12) {
             HStack {
-                Image(systemName: "shield.slash")
+                Image(systemName: isAccessibilityEnabled ? "checkmark.shield.fill" : "shield.slash")
                     .font(.title2)
-                    .foregroundColor(.orange)
+                    .foregroundColor(isAccessibilityEnabled ? .green : .orange)
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text("辅助功能权限")
                         .font(.headline)
                     
-                    Text("请在系统设置中授予辅助功能权限，否则快捷键无法在其他应用中使用")
+                    Text(isAccessibilityEnabled ? "已授权，所有功能可用" : "需要辅助功能权限才能检测快捷键和模拟键盘输入")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
                 
                 Spacer()
                 
-                Text("未授权")
+                Text(isAccessibilityEnabled ? "已授权" : "未授权")
                     .font(.caption)
                     .fontWeight(.medium)
                     .foregroundColor(.white)
@@ -130,7 +145,7 @@ struct SettingsView: View {
                     .padding(.vertical, 6)
                     .background(
                         RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.orange)
+                            .fill(isAccessibilityEnabled ? Color.green : Color.orange)
                     )
             }
             .padding(16)
@@ -139,16 +154,16 @@ struct SettingsView: View {
                     .fill(Color(NSColor.controlBackgroundColor))
             )
             
-            Button(action: {
-                if let url = URL(string: "x-apple.systempreferences:com.apple.Security_Privacy_Accessibility") {
-                    NSWorkspace.shared.open(url)
+            if !isAccessibilityEnabled {
+                Button(action: {
+                    openAccessibilitySettings()
+                }) {
+                    Label("打开系统设置授权", systemImage: "gear")
+                        .frame(maxWidth: .infinity)
                 }
-            }) {
-                Label("打开系统设置授权", systemImage: "gear")
-                    .frame(maxWidth: .infinity)
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
             }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
         }
         .padding(.horizontal, 30)
     }
@@ -267,6 +282,7 @@ struct SettingsView: View {
         if flags.contains(.option) { value += 262144 }
         if flags.contains(.shift) { value += 1048576 }
         if flags.contains(.control) { value += 524288 }
+        if flags.contains(.capsLock) { value += 4194304 }
         return value
     }
     

@@ -65,24 +65,14 @@ final class HotkeyManager: ObservableObject {
         
         globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let self = self else { return }
-            let msg = String(format: "[HotkeyManager] Global key detected: keyCode=%d, flags=%d\n", event.keyCode, event.modifierFlags.rawValue)
-            fputs(msg, stderr)
-            fflush(stderr)
             self.handleKeyEvent(event)
         }
-        fputs("[HotkeyManager] Global monitor created\n", stderr)
-        fflush(stderr)
         
         localMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let self = self else { return event }
-            let msg = String(format: "[HotkeyManager] Local key detected: keyCode=%d, flags=%d\n", event.keyCode, event.modifierFlags.rawValue)
-            fputs(msg, stderr)
-            fflush(stderr)
             self.handleKeyEvent(event)
             return event
         }
-        fputs("[HotkeyManager] Local monitor created\n", stderr)
-        fflush(stderr)
         
         isListening = true
         fputs("[HotkeyManager] Event monitoring started successfully\n", stderr)
@@ -99,31 +89,32 @@ final class HotkeyManager: ObservableObject {
             localMonitor = nil
         }
         isListening = false
-        fputs("[HotkeyManager] Event monitoring stopped\n", stderr)
-        fflush(stderr)
     }
     
     private func handleKeyEvent(_ event: NSEvent) {
+        guard settings.hotkey1.isEnabled else { return }
+        
         let keyCode = Int(event.keyCode)
-        var flags = 0
-        if event.modifierFlags.contains(.command) { flags += 65536 }
-        if event.modifierFlags.contains(.option) { flags += 262144 }
-        if event.modifierFlags.contains(.shift) { flags += 1048576 }
-        if event.modifierFlags.contains(.control) { flags += 524288 }
-        
-        guard settings.hotkey1.isEnabled else {
-            fputs("[HotkeyManager] Hotkey is disabled\n", stderr)
-            fflush(stderr)
-            return
-        }
-        
         let hotkeyConfig = settings.hotkey1
-        let matches = keyCode == hotkeyConfig.keyCode && flags == hotkeyConfig.modifierFlags
         
-        let msg = String(format: "[HotkeyManager] Key check: input(keyCode=%d, flags=%d) vs hotkey(keyCode=%d, flags=%d), match=%@\n",
-                         keyCode, flags, hotkeyConfig.keyCode, hotkeyConfig.modifierFlags, matches ? "YES" : "NO")
-        fputs(msg, stderr)
-        fflush(stderr)
+        let hasControl = event.modifierFlags.contains(.control)
+        let hasCommand = event.modifierFlags.contains(.command)
+        let hasOption = event.modifierFlags.contains(.option)
+        let hasShift = event.modifierFlags.contains(.shift)
+        
+        let targetControl = (hotkeyConfig.modifierFlags & 524288) != 0
+        let targetCommand = (hotkeyConfig.modifierFlags & 65536) != 0
+        let targetOption = (hotkeyConfig.modifierFlags & 262144) != 0
+        let targetShift = (hotkeyConfig.modifierFlags & 1048576) != 0
+        
+        let modifiersMatch = hasControl == targetControl && 
+                           hasCommand == targetCommand && 
+                           hasOption == targetOption && 
+                           hasShift == targetShift
+        
+        let keyCodeMatch = keyCode == hotkeyConfig.keyCode
+        
+        let matches = modifiersMatch && keyCodeMatch
         
         if matches {
             fputs("[HotkeyManager] Hotkey matched! Toggling window...\n", stderr)

@@ -283,8 +283,8 @@
 				ICON_FILE = "$(SRCROOT)/icon.png";
 				INFOPLIST_FILE = Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.clipboardtool.app;
-				PRODUCT_NAME = ClipboardTool;
+				PRODUCT_BUNDLE_IDENTIFIER = com.apple.clipboard;
+				PRODUCT_NAME = "苹果剪切板";
 				SDKROOT = macosx;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 			};
@@ -300,8 +300,8 @@
 				ICON_FILE = "$(SRCROOT)/icon.png";
 				INFOPLIST_FILE = Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.clipboardtool.app;
-				PRODUCT_NAME = ClipboardTool;
+				PRODUCT_BUNDLE_IDENTIFIER = com.apple.clipboard;
+				PRODUCT_NAME = "苹果剪切板";
 				SDKROOT = macosx;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 			};
