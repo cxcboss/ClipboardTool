@@ -3,7 +3,8 @@ import SwiftUI
 struct ClipboardWindowView: View {
     @ObservedObject var clipboardManager: ClipboardManager
     @ObservedObject var hotkeyManager: HotkeyManager
-    var onItemSelected: (() -> Void)?
+    var onClose: (() -> Void)?
+    var onPasteRequested: ((ClipboardItem) -> Void)?
     
     var body: some View {
         VStack(spacing: 0) {
@@ -50,7 +51,7 @@ struct ClipboardWindowView: View {
             Spacer()
             
             Button(action: {
-                onItemSelected?()
+                onClose?()
             }) {
                 Image(systemName: "xmark.circle.fill")
                     .font(.system(size: 16))
@@ -91,8 +92,7 @@ struct ClipboardWindowView: View {
     private func pasteItemDirectly(_ item: ClipboardItem) {
         fputs("[ClipboardWindowView] pasteItemDirectly called with item: \(item.content.prefix(50))\n", stderr)
         fflush(stderr)
-        clipboardManager.typeText(item.content)
-        onItemSelected?()
+        onPasteRequested?(item)
     }
     
     private func deleteItem(_ item: ClipboardItem) {

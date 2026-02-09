@@ -65,29 +65,27 @@ final class HotkeyManager: ObservableObject {
         
         globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let self = self else { return }
-            let msg = String(format: "[HotkeyManager] Global key detected: keyCode=%d\n", event.keyCode)
+            let msg = String(format: "[HotkeyManager] Global key detected: keyCode=%d, flags=%d\n", event.keyCode, event.modifierFlags.rawValue)
             fputs(msg, stderr)
             fflush(stderr)
             self.handleKeyEvent(event)
         }
-        let gm = String(format: "[HotkeyManager] Global monitor created: %@\n", globalMonitor != nil ? "YES" : "NO")
-        fputs(gm, stderr)
+        fputs("[HotkeyManager] Global monitor created\n", stderr)
         fflush(stderr)
         
         localMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let self = self else { return event }
-            let msg = String(format: "[HotkeyManager] Local key detected: keyCode=%d\n", event.keyCode)
+            let msg = String(format: "[HotkeyManager] Local key detected: keyCode=%d, flags=%d\n", event.keyCode, event.modifierFlags.rawValue)
             fputs(msg, stderr)
             fflush(stderr)
             self.handleKeyEvent(event)
             return event
         }
-        let lm = String(format: "[HotkeyManager] Local monitor created: %@\n", localMonitor != nil ? "YES" : "NO")
-        fputs(lm, stderr)
+        fputs("[HotkeyManager] Local monitor created\n", stderr)
         fflush(stderr)
         
         isListening = true
-        fputs("[HotkeyManager] Event monitoring started\n", stderr)
+        fputs("[HotkeyManager] Event monitoring started successfully\n", stderr)
         fflush(stderr)
     }
     
@@ -101,6 +99,8 @@ final class HotkeyManager: ObservableObject {
             localMonitor = nil
         }
         isListening = false
+        fputs("[HotkeyManager] Event monitoring stopped\n", stderr)
+        fflush(stderr)
     }
     
     private func handleKeyEvent(_ event: NSEvent) {
@@ -112,6 +112,8 @@ final class HotkeyManager: ObservableObject {
         if event.modifierFlags.contains(.control) { flags += 524288 }
         
         guard settings.hotkey1.isEnabled else {
+            fputs("[HotkeyManager] Hotkey is disabled\n", stderr)
+            fflush(stderr)
             return
         }
         

@@ -12,7 +12,9 @@ struct StatusBarMenu: View {
             if hotkeyManager.isWindowVisible {
                 ClipboardWindowView(
                     clipboardManager: clipboardManager,
-                    hotkeyManager: hotkeyManager
+                    hotkeyManager: hotkeyManager,
+                    onClose: nil,
+                    onPasteRequested: nil
                 )
                 .frame(height: CGFloat(min(40 + clipboardManager.items.count * 80, 500)))
                 .background(

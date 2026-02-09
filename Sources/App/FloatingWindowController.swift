@@ -4,7 +4,7 @@ import AppKit
 final class FloatingWindowController: NSWindowController, NSWindowDelegate {
     private let clipboardManager: ClipboardManager
     private let hotkeyManager: HotkeyManager
-    private var onItemSelectedCallback: (() -> Void)?
+    private var previousApp: NSRunningApplication?
     
     private let windowWidth: CGFloat = 320
     private let windowMaxHeight: CGFloat = 400
@@ -21,11 +21,8 @@ final class FloatingWindowController: NSWindowController, NSWindowDelegate {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func setOnItemSelected(_ callback: @escaping () -> Void) {
-        self.onItemSelectedCallback = callback
-    }
-    
     func show() {
+        capturePreviousApp()
         createWindowIfNeeded()
         showWindow()
     }
@@ -36,7 +33,12 @@ final class FloatingWindowController: NSWindowController, NSWindowDelegate {
         let contentView = ClipboardWindowView(
             clipboardManager: clipboardManager,
             hotkeyManager: hotkeyManager,
-            onItemSelected: onItemSelectedCallback
+            onClose: { [weak self] in
+                self?.hide()
+            },
+            onPasteRequested: { [weak self] item in
+                self?.pasteAndDismiss(item)
+            }
         )
         
         let hostingController = NSHostingController(rootView: contentView)
@@ -113,5 +115,30 @@ final class FloatingWindowController: NSWindowController, NSWindowDelegate {
     func windowShouldClose(_ sender: NSWindow) -> Bool {
         hide()
         return false
+    }
+
+    private func capturePreviousApp() {
+        let frontmost = NSWorkspace.shared.frontmostApplication
+        if frontmost?.bundleIdentifier == Bundle.main.bundleIdentifier {
+            previousApp = nil
+        } else {
+            previousApp = frontmost
+        }
+    }
+
+    private func pasteAndDismiss(_ item: ClipboardItem) {
+        hide()
+        let targetApp = previousApp
+        previousApp = nil
+        
+        if let targetApp = targetApp {
+            targetApp.activate(options: [.activateIgnoringOtherApps])
+        } else {
+            NSApp.hide(nil)
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            self?.clipboardManager.paste(item: item)
+        }
     }
 }

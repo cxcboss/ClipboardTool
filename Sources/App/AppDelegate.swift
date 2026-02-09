@@ -15,8 +15,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         fflush(stderr)
         
         hotkeyManager = HotkeyManager.shared
-        var msg = String(format: "[AppDelegate] HotkeyManager accessed: %@\n", hotkeyManager != nil ? "YES" : "NO")
-        fputs(msg, stderr)
+        
+        fputs("[AppDelegate] Initializing components...\n", stderr)
         fflush(stderr)
         
         setupStatusBar()
@@ -47,9 +47,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             clipboardManager: clipboardManager,
             hotkeyManager: hotkeyManager
         )
-        floatingWindowController?.setOnItemSelected { [weak self] in
-            self?.hideWindow()
-        }
     }
     
     private func loadAppIcon() -> NSImage? {

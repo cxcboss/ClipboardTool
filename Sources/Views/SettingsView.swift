@@ -12,12 +12,21 @@ struct SettingsView: View {
     var body: some View {
         VStack(spacing: 0) {
             VStack(spacing: 24) {
-                Text("⚙️ 快捷键设置")
+                Text("⚙️ 剪贴板工具设置")
                     .font(.title2)
                     .fontWeight(.bold)
                     .padding(.top, 20)
                 
+                permissionSection
+                
+                Divider()
+                    .padding(.horizontal, 30)
+                
                 VStack(spacing: 16) {
+                    Text("⌨️ 快捷键设置")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    
                     hotkeyRow(
                         title: "打开剪贴板",
                         config: hotkeyManager.settings.hotkey1,
@@ -86,13 +95,62 @@ struct SettingsView: View {
             .padding(.bottom, 20)
             .padding(.horizontal, 30)
         }
-        .frame(width: 420, height: 380)
+        .frame(width: 450, height: 440)
         .onAppear {
             setupKeyEvents()
         }
         .onDisappear {
             cancelRecording()
         }
+    }
+    
+    private var permissionSection: some View {
+        VStack(spacing: 12) {
+            HStack {
+                Image(systemName: "shield.slash")
+                    .font(.title2)
+                    .foregroundColor(.orange)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("辅助功能权限")
+                        .font(.headline)
+                    
+                    Text("请在系统设置中授予辅助功能权限，否则快捷键无法在其他应用中使用")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+                
+                Text("未授权")
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color.orange)
+                    )
+            }
+            .padding(16)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color(NSColor.controlBackgroundColor))
+            )
+            
+            Button(action: {
+                if let url = URL(string: "x-apple.systempreferences:com.apple.Security_Privacy_Accessibility") {
+                    NSWorkspace.shared.open(url)
+                }
+            }) {
+                Label("打开系统设置授权", systemImage: "gear")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+        }
+        .padding(.horizontal, 30)
     }
     
     private func hotkeyRow(
