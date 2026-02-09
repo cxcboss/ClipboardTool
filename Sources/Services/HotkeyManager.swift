@@ -12,15 +12,8 @@ final class HotkeyManager: ObservableObject {
     private var isListening = false
     
     private init() {
-        fputs("[HotkeyManager] Initializing...\n", stderr)
-        fflush(stderr)
         loadSettings()
         startListening()
-        
-        let msg = String(format: "[HotkeyManager] Initialized with hotkey: keyCode=%d, modifiers=%d, enabled=%d\n",
-                         settings.hotkey1.keyCode, settings.hotkey1.modifierFlags, settings.hotkey1.isEnabled ? 1 : 0)
-        fputs(msg, stderr)
-        fflush(stderr)
     }
     
     deinit {
@@ -31,13 +24,9 @@ final class HotkeyManager: ObservableObject {
         guard let data = UserDefaults.standard.data(forKey: "hotkey_settings"),
               let loadedSettings = try? JSONDecoder().decode(HotkeySettings.self, from: data) else {
             settings = .defaultSettings
-            fputs("[HotkeyManager] Using default hotkey settings\n", stderr)
-            fflush(stderr)
             return
         }
         settings = loadedSettings
-        fputs("[HotkeyManager] Loaded settings from UserDefaults\n", stderr)
-        fflush(stderr)
     }
     
     private func saveSettings() {
@@ -48,18 +37,11 @@ final class HotkeyManager: ObservableObject {
     func updateHotkey(_ config: HotkeySettings.HotkeyConfig, isFirst: Bool) {
         settings.hotkey1 = config
         saveSettings()
-        let msg = String(format: "[HotkeyManager] Updated hotkey: keyCode=%d, modifiers=%d\n", config.keyCode, config.modifierFlags)
-        fputs(msg, stderr)
-        fflush(stderr)
-        
         restartListening()
     }
     
     private func startListening() {
         guard !isListening else { return }
-        
-        fputs("[HotkeyManager] Starting event monitoring...\n", stderr)
-        fflush(stderr)
         
         stopListening()
         
@@ -75,8 +57,6 @@ final class HotkeyManager: ObservableObject {
         }
         
         isListening = true
-        fputs("[HotkeyManager] Event monitoring started successfully\n", stderr)
-        fflush(stderr)
     }
     
     private func stopListening() {
@@ -117,8 +97,6 @@ final class HotkeyManager: ObservableObject {
         let matches = modifiersMatch && keyCodeMatch
         
         if matches {
-            fputs("[HotkeyManager] Hotkey matched! Toggling window...\n", stderr)
-            fflush(stderr)
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
                 self.isWindowVisible.toggle()

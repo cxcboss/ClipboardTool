@@ -11,23 +11,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var hotkeyManager: HotkeyManager!
     
     func applicationDidFinishLaunching(_ notification: Notification) {
-        fputs("[AppDelegate] applicationDidFinishLaunching\n", stderr)
-        fflush(stderr)
-        
         hotkeyManager = HotkeyManager.shared
-        
-        fputs("[AppDelegate] Initializing components...\n", stderr)
-        fflush(stderr)
-        
         setupStatusBar()
         setupNotifications()
         setupMenuBar()
         checkAutoLaunch()
-        
         NSApp.setActivationPolicy(.accessory)
-        
-        fputs("[AppDelegate] App launched successfully\n", stderr)
-        fflush(stderr)
     }
     
     private func setupStatusBar() {
@@ -171,7 +160,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         
         let settingsView = SettingsView(hotkeyManager: hotkeyManager)
         let settingsWindow = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 450, height: 400),
+            contentRect: NSRect(x: 0, y: 0, width: 450, height: 460),
             styleMask: [.titled, .closable, .miniaturizable],
             backing: .buffered,
             defer: false
@@ -205,7 +194,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
         } catch {
-            print("Failed to update launch status: \(error)")
             let alert = NSAlert()
             alert.messageText = "设置失败"
             alert.informativeText = "无法更新自启动设置，请检查系统偏好设置中的隐私权限。"

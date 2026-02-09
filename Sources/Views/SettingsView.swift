@@ -109,8 +109,6 @@ struct SettingsView: View {
     private func checkAccessibilityPermission() {
         let trusted = AXIsProcessTrusted()
         isAccessibilityEnabled = trusted
-        fputs("[SettingsView] Accessibility permission: \(trusted ? "enabled" : "disabled")\n", stderr)
-        fflush(stderr)
     }
     
     private func openAccessibilitySettings() {
