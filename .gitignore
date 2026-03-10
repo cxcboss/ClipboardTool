@@ -1,0 +1,12 @@
+.DS_Store
+*.xcuserstate
+*.xcuserdatad
+xcuserdata/
+DerivedData/
+build/
+ClipboardTool.app/
+苹果剪切板.app/
+*.pbxuser
+*.mode1v3
+*.swp
+*~

@@ -6,6 +6,9 @@ struct ClipboardWindowView: View {
     var onClose: (() -> Void)?
     var onPasteRequested: ((ClipboardItem) -> Void)?
     
+    @State private var selectedItems: Set<UUID> = []
+    @State private var isShiftPressed = false
+    
     var body: some View {
         VStack(spacing: 0) {
             headerBar
@@ -15,10 +18,13 @@ struct ClipboardWindowView: View {
             } else {
                 ScrollView {
                     LazyVStack(spacing: 6) {
-                        ForEach(clipboardManager.items) { item in
-                            ClipboardCardView(item: item) {
-                                pasteItemDirectly(item)
-                            }
+                        ForEach(Array(clipboardManager.items.enumerated()), id: \.element.id) { index, item in
+                            ClipboardCardView(
+                                item: item,
+                                onSelect: { handleItemClick(item, isShiftPressed: NSEvent.modifierFlags.contains(.shift)) },
+                                index: index + 1,
+                                isSelected: selectedItems.contains(item.id)
+                            )
                             .contextMenu {
                                 Button(action: { pasteItemDirectly(item) }) {
                                     Label("填入输入框", systemImage: "arrow.right.doc.on.clipboard")
@@ -33,8 +39,12 @@ struct ClipboardWindowView: View {
                     .padding(.bottom, 10)
                 }
             }
+            
+            if !selectedItems.isEmpty {
+                selectionToolbar
+            }
         }
-        .frame(width: 320, height: CGFloat(min(50 + clipboardManager.items.count * 52, 400)))
+        .frame(width: 320, height: CGFloat(min(50 + clipboardManager.items.count * 52, 400) + (selectedItems.isEmpty ? 0 : 50)))
         .background(
             RoundedRectangle(cornerRadius: 12)
                 .fill(Color(NSColor.windowBackgroundColor))
@@ -44,9 +54,22 @@ struct ClipboardWindowView: View {
     
     private var headerBar: some View {
         HStack {
-            Text("剪贴板历史")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundColor(.primary)
+            if selectedItems.isEmpty {
+                Text("剪贴板历史")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(.primary)
+            } else {
+                Text("已选择 \(selectedItems.count) 项")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(.accentColor)
+                
+                Button(action: { selectedItems.removeAll() }) {
+                    Text("取消")
+                        .font(.system(size: 12))
+                        .foregroundColor(.secondary)
+                }
+                .buttonStyle(.plain)
+            }
             
             Spacer()
             
@@ -71,6 +94,53 @@ struct ClipboardWindowView: View {
         .padding(.top, 4)
     }
     
+    private var selectionToolbar: some View {
+        HStack(spacing: 12) {
+            Button(action: { pasteSelectedItems() }) {
+                HStack(spacing: 4) {
+                    Image(systemName: "arrow.right.doc.on.clipboard")
+                        .font(.system(size: 12))
+                    Text("一起输入")
+                        .font(.system(size: 12))
+                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(Color.accentColor)
+                )
+            }
+            .buttonStyle(.plain)
+            
+            Spacer()
+            
+            Button(action: { deleteSelectedItems() }) {
+                HStack(spacing: 4) {
+                    Image(systemName: "trash")
+                        .font(.system(size: 12))
+                    Text("删除")
+                        .font(.system(size: 12))
+                }
+                .foregroundColor(.red)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(Color.red.opacity(0.15))
+                )
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(
+            Color(NSColor.controlBackgroundColor)
+        )
+        .padding(.horizontal, 4)
+        .padding(.bottom, 4)
+    }
+    
     private var emptyStateView: some View {
         VStack(spacing: 10) {
             Image(systemName: "doc.on.clipboard")
@@ -89,6 +159,28 @@ struct ClipboardWindowView: View {
         .padding(.top, 40)
     }
     
+    private func handleItemClick(_ item: ClipboardItem, isShiftPressed: Bool) {
+        if isShiftPressed {
+            if selectedItems.contains(item.id) {
+                selectedItems.remove(item.id)
+            } else {
+                selectedItems.insert(item.id)
+            }
+        } else {
+            if selectedItems.isEmpty {
+                pasteItemDirectly(item)
+            } else {
+                if selectedItems.contains(item.id) && selectedItems.count == 1 {
+                    selectedItems.removeAll()
+                    pasteItemDirectly(item)
+                } else {
+                    selectedItems.removeAll()
+                    selectedItems.insert(item.id)
+                }
+            }
+        }
+    }
+    
     private func pasteItemDirectly(_ item: ClipboardItem) {
         fputs("[ClipboardWindowView] pasteItemDirectly called with item: \(item.content.prefix(50))\n", stderr)
         fflush(stderr)
@@ -97,5 +189,26 @@ struct ClipboardWindowView: View {
     
     private func deleteItem(_ item: ClipboardItem) {
         clipboardManager.deleteItem(item)
+    }
+    
+    private func pasteSelectedItems() {
+        let selectedClipboardItems = clipboardManager.items.filter { selectedItems.contains($0.id) }
+        
+        for item in selectedClipboardItems {
+            pasteItemDirectly(item)
+            Thread.sleep(forTimeInterval: 0.1)
+        }
+        
+        selectedItems.removeAll()
+    }
+    
+    private func deleteSelectedItems() {
+        let selectedClipboardItems = clipboardManager.items.filter { selectedItems.contains($0.id) }
+        
+        for item in selectedClipboardItems {
+            clipboardManager.deleteItem(item)
+        }
+        
+        selectedItems.removeAll()
     }
 }

@@ -3,16 +3,24 @@ import SwiftUI
 struct ClipboardCardView: View {
     let item: ClipboardItem
     let onSelect: () -> Void
+    let index: Int
+    let isSelected: Bool
     
     @State private var isHovered = false
     
     var body: some View {
         Button(action: onSelect) {
             HStack(spacing: 10) {
-                Image(systemName: "doc.text")
-                    .font(.system(size: 14))
-                    .foregroundColor(.accentColor)
-                    .frame(width: 24)
+                ZStack {
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(isSelected ? Color.accentColor : Color.secondary.opacity(0.2))
+                        .frame(width: 24, height: 24)
+                    
+                    Text("\(index)")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(isSelected ? .white : .secondary)
+                }
+                .frame(width: 24)
                 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(item.content)
@@ -28,7 +36,11 @@ struct ClipboardCardView: View {
                 
                 Spacer()
                 
-                if isHovered {
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 14))
+                        .foregroundColor(.accentColor)
+                } else if isHovered {
                     Image(systemName: "arrow.up.left")
                         .font(.system(size: 12))
                         .foregroundColor(.accentColor)
@@ -38,11 +50,11 @@ struct ClipboardCardView: View {
             .padding(.vertical, 8)
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(isHovered ? Color.accentColor.opacity(0.12) : Color(NSColor.controlBackgroundColor))
+                    .fill(isSelected ? Color.accentColor.opacity(0.15) : (isHovered ? Color.accentColor.opacity(0.12) : Color(NSColor.controlBackgroundColor)))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
-                    .strokeBorder(isHovered ? Color.accentColor.opacity(0.4) : Color.clear, lineWidth: 1)
+                    .strokeBorder(isSelected ? Color.accentColor.opacity(0.6) : (isHovered ? Color.accentColor.opacity(0.4) : Color.clear), lineWidth: 1)
             )
         }
         .buttonStyle(.plain)

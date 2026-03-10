@@ -30,7 +30,7 @@ xcodebuild -project ClipboardTool.xcodeproj \
     CODE_SIGNING_REQUIRED=NO \
     CODE_SIGNING_ALLOWED=NO
 
-BUILD_PRODUCTS_DIR=$(find ~/Library/Developer/Xcode/DerivedData/ClipboardTool-* -name "ClipboardTool.app" -type d | head -1)
+BUILD_PRODUCTS_DIR=$(find ~/Library/Developer/Xcode/DerivedData/ClipboardTool-* -name "苹果剪切板.app" -type d | head -1)
 
 if [ -z "$BUILD_PRODUCTS_DIR" ]; then
     echo "❌ 找不到构建产物"
@@ -45,7 +45,7 @@ rm -rf "$APP_PATH"
 mkdir -p "$APP_PATH/Contents/MacOS"
 mkdir -p "$APP_PATH/Contents/Resources"
 
-cp -f "$BUILD_PRODUCTS_DIR/Contents/MacOS/ClipboardTool" "$APP_PATH/Contents/MacOS/"
+cp -f "$BUILD_PRODUCTS_DIR/Contents/MacOS/苹果剪切板" "$APP_PATH/Contents/MacOS/"
 cp -f "$BUILD_PRODUCTS_DIR/Contents/Resources/icon.png" "$APP_PATH/Contents/Resources/" 2>/dev/null || true
 cp -f "$BUILD_PRODUCTS_DIR/Info.plist" "$APP_PATH/Contents/" 2>/dev/null || true
 
@@ -57,7 +57,7 @@ cat > "$APP_PATH/Contents/Info.plist" << 'EOF'
     <key>CFBundleDevelopmentRegion</key>
     <string>zh_CN</string>
     <key>CFBundleExecutable</key>
-    <string>ClipboardTool</string>
+    <string>苹果剪切板</string>
     <key>CFBundleIconFile</key>
     <string>icon.png</string>
     <key>CFBundleIdentifier</key>
@@ -89,7 +89,7 @@ cat > "$APP_PATH/Contents/Info.plist" << 'EOF'
 </plist>
 EOF
 
-chmod +x "$APP_PATH/Contents/MacOS/ClipboardTool"
+chmod +x "$APP_PATH/Contents/MacOS/苹果剪切板"
 
 echo "✅ 构建成功！"
 echo ""
